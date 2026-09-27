@@ -1,0 +1,191 @@
+{
+  "info": {
+    "name": "BFSI Insurance ERP",
+    "description": "Staff API walkthrough. Run the Login request first; it stores the access token. Base URL defaults to http://127.0.0.1:8000. Seed users: admin / OpsLead123!, underwriter / RiskDesk123!, adjuster / ClaimsDesk123!.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://127.0.0.1:8000"},
+    {"key": "accessToken", "value": ""}
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access) { pm.collectionVariables.set('accessToken', body.access); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"OpsLead123!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login/"
+          }
+        },
+        {
+          "name": "Me",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/auth/me/"}
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "List",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/customers/?search=Asha"}
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Meera Iyer\",\n  \"email\": \"meera@example.com\",\n  \"phone\": \"+919812345678\",\n  \"address\": \"8 Boat Club Road, Pune\"\n}"
+            },
+            "url": "{{baseUrl}}/api/customers/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Underwriting",
+      "item": [
+        {
+          "name": "List",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/underwriting/"}
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": 1,\n  \"policy_type\": \"health\",\n  \"details\": \"Age 34, non-smoker, no recent hospitalization.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/underwriting/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Policies",
+      "item": [
+        {
+          "name": "List active",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/policies/?status=active"}
+        },
+        {
+          "name": "Create draft",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": 1,\n  \"type\": \"health\",\n  \"start_date\": \"2026-01-01\",\n  \"end_date\": \"2026-12-31\",\n  \"premium_amount\": \"12000.00\"\n}"
+            },
+            "url": "{{baseUrl}}/api/policies/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Claims",
+      "item": [
+        {
+          "name": "List fraud flags",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/claims/?fraud_flagged=true"}
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy\": 1,\n  \"claimant_name\": \"Asha Rao\",\n  \"claim_date\": \"2026-06-15\",\n  \"description\": \"Hospital admission for a covered procedure.\",\n  \"amount\": \"8000.00\"\n}"
+            },
+            "url": "{{baseUrl}}/api/claims/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "List invoices",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/finance/invoices/"}
+        },
+        {
+          "name": "Outstanding balance",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/finance/customers/1/outstanding-balance/"}
+        }
+      ]
+    },
+    {
+      "name": "Compliance",
+      "item": [
+        {
+          "name": "List rules",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/compliance/rules/"}
+        },
+        {
+          "name": "List reports",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/compliance/reports/"}
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "List",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/documents/"}
+        }
+      ]
+    },
+    {
+      "name": "Identity",
+      "item": [
+        {
+          "name": "Verify passport",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": 1,\n  \"document_type\": \"passport\",\n  \"document_number\": \"P1234567\"\n}"
+            },
+            "url": "{{baseUrl}}/api/identity/verify/"
+          }
+        },
+        {
+          "name": "List verifications",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/identity/verifications/"}
+        }
+      ]
+    }
+  ]
+}

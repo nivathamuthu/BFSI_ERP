@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BFSI Insurance ERP</title>
+  <link rel="stylesheet" href="{% static 'portal/app.css' %}">
+</head>
+<body>
+  <section id="login-screen">
+    <form id="login-form" class="login-card">
+      <p class="eyebrow">Insurance operations</p>
+      <h1>BFSI Insurance ERP</h1>
+      <p class="lede">Sign in as a desk. Underwriting binds cover, the claims desk adjusts losses, and finance bills the premium.</p>
+      <label>Username <input name="username" autocomplete="username" required value="admin"></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required value="OpsLead123!"></label>
+      <p id="login-error" class="form-error" hidden></p>
+      <button type="submit">Sign in</button>
+      <div class="demo-row">
+        <button type="button" data-user="admin" data-pass="OpsLead123!">Admin</button>
+        <button type="button" data-user="underwriter" data-pass="RiskDesk123!">Underwriter</button>
+        <button type="button" data-user="adjuster" data-pass="ClaimsDesk123!">Adjuster</button>
+      </div>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <aside>
+      <p class="brand">BFSI ERP</p>
+      <nav>
+        <button type="button" data-panel="overview" class="active">Overview</button>
+        <button type="button" data-panel="customers">Customers</button>
+        <button type="button" data-panel="underwriting">Underwriting</button>
+        <button type="button" data-panel="policies">Policies</button>
+        <button type="button" data-panel="claims">Claims</button>
+        <button type="button" data-panel="finance">Finance</button>
+        <button type="button" data-panel="compliance">Compliance</button>
+        <button type="button" data-panel="documents">Documents</button>
+        <button type="button" data-panel="identity">Identity</button>
+      </nav>
+      <a href="/api/docs/">API docs</a>
+    </aside>
+    <div class="workspace">
+      <header>
+        <div>
+          <p id="who"></p>
+          <h2 id="panel-title">Overview</h2>
+        </div>
+        <button type="button" id="logout">Log out</button>
+      </header>
+      <p id="toast" class="toast" hidden></p>
+
+      <section class="panel" id="panel-overview">
+        <p class="lede">A customer is underwritten, a policy is bound, premiums are invoiced, and claims are opened only against active cover.</p>
+        <div id="stats" class="stats"></div>
+        <div id="balances" class="stack"></div>
+      </section>
+
+      <section class="panel" id="panel-customers" hidden>
+        <form id="customer-form" class="card form-grid">
+          <h3>New customer</h3>
+          <label>Name <input name="name" required></label>
+          <label>Email <input name="email" type="email" required></label>
+          <label>Phone <input name="phone" placeholder="+919876543210"></label>
+          <label class="wide">Address <input name="address"></label>
+          <button type="submit">Save customer</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th></tr></thead><tbody id="customer-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-underwriting" hidden>
+        <form id="underwriting-form" class="card form-grid">
+          <h3>New underwriting request</h3>
+          <label>Customer <select name="customer" required></select></label>
+          <label>Cover <select name="policy_type" required></select></label>
+          <label class="wide">Details <textarea name="details" required></textarea></label>
+          <button type="submit">Submit request</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Cover</th><th>Details</th><th>Status</th></tr></thead><tbody id="underwriting-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-policies" hidden>
+        <form id="policy-form" class="card form-grid">
+          <h3>New policy</h3>
+          <p class="hint wide">Starts as draft. Quote it, then make it active. Link an underwriting request only after it is approved.</p>
+          <label>Customer <select name="customer" required></select></label>
+          <label>Cover <select name="type" required></select></label>
+          <label>Start <input name="start_date" type="date" required></label>
+          <label>End <input name="end_date" type="date" required></label>
+          <label>Premium <input name="premium_amount" type="number" min="0.01" step="0.01" required></label>
+          <label>Underwriting request <select name="underwriting_request"><option value="">None</option></select></label>
+          <button type="submit">Create draft</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Number</th><th>Customer</th><th>Cover</th><th>Premium</th><th>Period</th><th>Status</th></tr></thead><tbody id="policy-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-claims" hidden>
+        <form id="claim-form" class="card form-grid">
+          <h3>New claim</h3>
+          <p class="hint wide">Only an active policy can take a claim. Large amounts, a different claimant name, a date outside the policy, or a second open claim are flagged.</p>
+          <label>Policy <select name="policy" required></select></label>
+          <label>Claimant <input name="claimant_name" required></label>
+          <label>Loss date <input name="claim_date" type="date" required></label>
+          <label>Amount <input name="amount" type="number" min="0.01" step="0.01" required></label>
+          <label class="wide">Description <textarea name="description" required></textarea></label>
+          <button type="submit">Open claim</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Number</th><th>Policy</th><th>Claimant</th><th>Amount</th><th>Flags</th><th>Status</th></tr></thead><tbody id="claim-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-finance" hidden>
+        <form id="invoice-form" class="card form-grid">
+          <h3>New invoice</h3>
+          <p class="hint wide">Draft invoices are not yet receivable. Issue one, then record a payment. Balance = open invoices − payments + refunds.</p>
+          <label>Customer <select name="customer" required></select></label>
+          <label>Policy <select name="policy"><option value="">None</option></select></label>
+          <label>Amount <input name="amount" type="number" min="0.01" step="0.01" required></label>
+          <label>Due <input name="due_date" type="date" required></label>
+          <button type="submit">Create draft invoice</button>
+        </form>
+        <form id="payment-form" class="card form-grid">
+          <h3>Record cash</h3>
+          <label>Customer <select name="customer" required></select></label>
+          <label>Type <select name="type" required></select></label>
+          <label>Amount <input name="amount" type="number" min="0.01" step="0.01" required></label>
+          <label>Date <input name="date" type="date" required></label>
+          <label class="wide">Description <input name="description"></label>
+          <button type="submit">Post transaction</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead><tbody id="invoice-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-compliance" hidden>
+        <form id="rule-form" class="card form-grid">
+          <h3>New rule</h3>
+          <label>Name <input name="name" required></label>
+          <label class="wide">Description <textarea name="description" required></textarea></label>
+          <button type="submit">Save rule</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Rule</th><th>Description</th><th>Status</th></tr></thead><tbody id="rule-rows"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Report</th><th>Rule</th><th>Date</th><th>Status</th></tr></thead><tbody id="report-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-documents" hidden>
+        <form id="document-form" class="card form-grid">
+          <h3>Upload a file</h3>
+          <label>Name <input name="name" required></label>
+          <label>Type <select name="type" required></select></label>
+          <label>Policy id <input name="policy" inputmode="numeric"></label>
+          <label>Claim id <input name="claim" inputmode="numeric"></label>
+          <label>Underwriting id <input name="underwriting_request" inputmode="numeric"></label>
+          <label>File <input name="file" type="file" required></label>
+          <button type="submit">Upload</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Size</th><th>File</th></tr></thead><tbody id="document-rows"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-identity" hidden>
+        <form id="identity-form" class="card form-grid">
+          <h3>Mock identity check</h3>
+          <p class="hint wide">This does not call Onfido or Jumio. A normal passport verifies. A number ending in X fails. A driver's license goes to manual review.</p>
+          <label>Customer <select name="customer" required></select></label>
+          <label>Document <select name="document_type" required></select></label>
+          <label>Number <input name="document_number" required></label>
+          <button type="submit">Verify</button>
+        </form>
+        <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Document</th><th>Number</th><th>Result</th><th>Detail</th></tr></thead><tbody id="identity-rows"></tbody></table></div>
+      </section>
+    </div>
+  </div>
+  <script src="{% static 'portal/app.js' %}"></script>
+</body>
+</html>
